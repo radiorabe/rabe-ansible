@@ -1,0 +1,11 @@
+---
+# Configuration plays for live-studio laptops and devices
+
+- hosts:
+    - outside_nodes
+  gather_facts: yes
+  roles:
+    - name: radiorabe.motion
+      motion_preflight: off
+      motion_install: off
+      motion_configure: on

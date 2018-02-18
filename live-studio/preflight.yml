@@ -1,0 +1,11 @@
+---
+# Pre-flight check plays for live-studio laptops and devices
+
+- hosts:
+    - outside_nodes
+  gather_facts: yes
+  roles:
+    - name: radiorabe.motion
+      motion_preflight: on
+      motion_install: off
+      motion_configure: off
