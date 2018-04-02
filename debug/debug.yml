@@ -1,0 +1,9 @@
+---
+# Simple debug play that calls a basic debug task
+
+- hosts:
+    - all
+  gather_facts: yes
+  tasks:
+    - debug:
+        msg: "Hello from debug play"
