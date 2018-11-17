@@ -1,0 +1,8 @@
+---
+# Configuration plays for most devices
+
+- hosts:
+    - all
+  gather_facts: yes
+  roles:
+    - name: linux-system-roles.timesync

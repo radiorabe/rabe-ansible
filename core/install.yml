@@ -1,0 +1,6 @@
+---
+# Install plays for most devices
+
+- hosts:
+    - all
+  gather_facts: no
