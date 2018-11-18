@@ -1,0 +1,6 @@
+---
+# Runs preflight, install and configure plays in one go
+
+- import_playbook: live-studio/preflight.yml
+- import_playbook: live-studio/install.yml
+- import_playbook: live-studio/configure.yml
