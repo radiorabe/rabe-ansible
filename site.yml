@@ -1,0 +1,14 @@
+---
+#
+# This is the master playbook. It includes all the other playbooks.
+# Usually you would call it with a -t tagname to only run a specific tag
+# over all machines.
+#
+# some common ones:
+# TODO: non fedora examples
+# -t fedmsgconfig -> runs fedmsg/base config over all playbooks
+# -t apache -> run when tasks/apache.yml changes.
+#
+
+- import_playbook: playbooks/base.yml
+- import_playbook: playbooks/live-studio.yml

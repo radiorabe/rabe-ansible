@@ -2,7 +2,7 @@
 # Pre-flight check plays for live-studio laptops and devices
 
 - hosts:
-    - outside_nodes
+    - tags_outside_nodes
   gather_facts: yes
   roles:
     - name: radiorabe.motion

@@ -1,0 +1,6 @@
+---
+# Runs preflight, install and configure plays in one go
+
+- import_playbook: base/preflight.yml
+- import_playbook: base/install.yml
+- import_playbook: base/configure.yml

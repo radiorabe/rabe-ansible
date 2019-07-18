@@ -1,3 +1,5 @@
 ---
 - src: linux-system-roles.timesync
-  version: 1.0.1
+  version: master
+- src: radiorabe.motion
+  version: master

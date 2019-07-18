@@ -1,0 +1,11 @@
+timesync_ntp_servers:
+  - hostname: ntp-01.service.int.rabe.ch
+    iburst: yes
+  - hostname: ntp-02.service.int.rabe.ch
+    iburst: yes
+  - hostname: ntp-03.service.int.rabe.ch
+    iburst: yes
+  - hostname: ntp-04.service.int.rabe.ch
+    iburst: yes
+  - hostname: ntp-05.service.int.rabe.ch
+    iburst: yes

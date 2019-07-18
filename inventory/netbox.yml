@@ -1,0 +1,6 @@
+plugin: netbox
+api_endpoint: https://netbox.service.int.rabe.ch/
+group_by:
+  - tags
+query_filters:
+  - role: server
