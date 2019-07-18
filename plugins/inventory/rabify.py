@@ -12,8 +12,9 @@ DOCUMENTATION = """
         - Lucas Bickel (@hairmare)
     short_description: Rabify NetBox inventory
     description:
-        - Update data from NetBox inventory with RaBe specifics
-        - Most of the code in here is loosly based on the netbox inventory plugin in ansible
+        - Update data from NetBox inventory with RaBe specifics.
+        - Updates ansible_host variable to the ip of the admin interface for a host.
+        - Some of the code in here was based on the netbox inventory plugin in ansible.
     extends_documentation_fragment:
         - constructed
     options:
