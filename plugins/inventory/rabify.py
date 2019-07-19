@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 import pynetbox
 from ansible.plugins.inventory import BaseInventoryPlugin
+from ansible.utils.display import Display
 
 __metaclass__ = type
 
@@ -53,6 +54,8 @@ DOCUMENTATION = """
             default: "IPMI"
 """
 
+display = Display()
+
 
 class InventoryModule(BaseInventoryPlugin):
 
@@ -74,17 +77,21 @@ class InventoryModule(BaseInventoryPlugin):
         self.main()
 
     def main(self):
+        display.vvvv("Rabify connecting to %s" % self.api_endpoint)
         nb = pynetbox.api(
             self.api_endpoint, token=self.api_token, ssl_verify=self.validate_certs
         )
         for host in self.inventory.hosts:
+            display.vvv("Rabifying host %s" % host)
             ip = None
             try:
                 ip = nb.ipam.ip_addresses.get(
                     virtual_machine=host, parent=self.vm_admin_prefix
                 )
             except Exception:
-                pass
+                display.vvvv(
+                    "Rabify considers host to not be a VM %s. Keep calm." % host
+                )
             try:
                 ips = nb.ipam.ip_addresses.filter(
                     device=host, parent=self.device_admin_prefix
@@ -93,9 +100,12 @@ class InventoryModule(BaseInventoryPlugin):
                     if addr.interface.name != self.device_interface_ignore:
                         ip = addr
             except Exception:
-                pass
+                display.vvvv(
+                    "Rabify considers host %s to not be a Device. Carry on." % host
+                )
 
             if ip:
                 self.inventory.set_variable(
                     host, "ansible_host", ip.address.split("/")[0]
                 )
+                display.vvv("Rabify updated IP of host %s to %s" % (host, ip))
