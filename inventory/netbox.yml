@@ -5,3 +5,4 @@ group_by:
 query_filters:
   - role: server
   - role: audio-recorder
+  - role: audio-streamer
