@@ -86,13 +86,13 @@ class InventoryModule(BaseInventoryPlugin):
 
     def main(self):
         display.vvvv("Rabify connecting to %s" % self.api_endpoint)
-        nb = pynetbox.api(
+        self.nb = pynetbox.api(
             self.api_endpoint, token=self.api_token, ssl_verify=self.validate_certs
         )
         for host in self.inventory.hosts:
             display.vvv("Rabifying host %s" % host)
 
-            ip = self._get_host_ip(host, nb)
+            ip = self._get_host_ip(host)
 
             if ip:
                 self.inventory.set_variable(
@@ -100,43 +100,46 @@ class InventoryModule(BaseInventoryPlugin):
                 )
                 display.vvv("Rabify updated IP of host %s to %s" % (host, ip))
 
-    def _get_host_ip(self, host, nb):
+    def _get_host_ip(self, host):
         ip = None
+        netbox_id = None
+        is_vm = False
+        is_device = False
 
         try:
-            ip = nb.ipam.ip_addresses.get(
+            ip = self.nb.ipam.ip_addresses.get(
                 virtual_machine=host, parent=self.vm_admin_prefix
             )
-            if self.config_context:
-                self._set_config_context(
-                    host,
-                    nb.virtualization.virtual_machines.get(
-                        ip.interface.virtual_machine.id
-                    ).config_context,
-                )
+            is_vm = True
+            netbox_id = ip.interface.virtual_machine.id
         except Exception:
-            display.vvvv("Rabify considers host to not be a VM %s. Keep calm." % host)
+            display.vvvv("Rabify considers host %s to not be a VM. Keep calm." % host)
 
         try:
-            ips = nb.ipam.ip_addresses.filter(
+            ips = self.nb.ipam.ip_addresses.filter(
                 device=host, parent=self.device_admin_prefix
             )
+            is_device = True
+            netbox_id = self.nb.dcim.devices.get(name=host).id
             for addr in ips:
                 if addr.interface.name != self.device_interface_ignore:
                     ip = addr
-                    if self.config_context:
-                        self._set_config_context(
-                            host,
-                            nb.dcim.devices.get(ip.interface.device.id).config_context,
-                        )
         except Exception:
             display.vvvv(
                 "Rabify considers host %s to not be a Device. Carry on." % host
             )
 
+        if self.config_context and netbox_id:
+            self._set_config_context(host, netbox_id, is_vm, is_device)
+
         return ip
 
-    def _set_config_context(self, host, ctx):
+    def _set_config_context(self, host, netbox_id, is_vm, is_device):
+        ctx = None
+        if is_vm:
+            ctx = self.nb.virtualization.virtual_machines.get(netbox_id).config_context
+        elif is_device:
+            ctx = self.nb.dcim.devices.get(netbox_id).config_context
         for key in ctx:
             display.vvv(
                 "Rabify is setting context key %s for host %s to value %s"
