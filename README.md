@@ -20,6 +20,9 @@ pip install -r requirements.txt
 export ANSIBLE_INVENTORY_PLUGINS=plugins/inventory/
 export NETBOX_TOKEN=<your personal netbox token>
 
+# if your local user doesn't match your RaBe admin user
+export ANSIBLE_REMOTE_USER=<admin.user>
+
 # grab used roles from galaxy
 ansible-galaxy install -r roles/requirements.yml
 
@@ -48,6 +51,14 @@ ansible-playbook site.yml --diff -l vm-0014
 
 # run on all rabbitmq machines (with --check)
 ansible-playbook site.yml --check --diff -l tags_rabbitmq
+```
+
+Up until now, every command was run as your admin user from the `REMOTE_USER` env
+variable. If you want to run commands as root through `sudo` you need to tell
+Ansible to do so using the become (`-b`) and ask password (`-K`) flags.`
+
+```bash
+ansible-playbook playbooks/debug/debug.yml -b -K
 ```
 
 ## Contributing
