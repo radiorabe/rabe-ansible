@@ -4,6 +4,10 @@
 - hosts:
     - all
     - '!tags_legacy'
+    # don't manage timesync on ovirt nodes since the should be peering with each other
+    # See https://github.com/linux-system-roles/timesync/pull/46 for what is needed to
+    # manage ntp in peering mode on affected nodes
+    - '!tags_ovirt'
   gather_facts: yes
   roles:
     - name: linux-system-roles.timesync
