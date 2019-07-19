@@ -52,6 +52,13 @@ DOCUMENTATION = """
             description:
                 - Ignore device interfaces with this name.
             default: "IPMI"
+        config_context:
+            description:
+                - If True, it adds config-context in host vars.
+                - Config-context enables the association of arbitrary data to devices and virtual machines grouped by
+                  region, site, role, platform, and/or tenant. Please check official netbox docs for more info.
+            default: True
+            type: boolean
 """
 
 display = Display()
@@ -71,6 +78,7 @@ class InventoryModule(BaseInventoryPlugin):
         self.vm_admin_prefix = self.get_option("vm_admin_prefix")
         self.device_admin_prefix = self.get_option("device_admin_prefix")
         self.device_interface_ignore = self.get_option("device_interface_ignore")
+        self.config_context = self.get_option("config_context")
 
         self.inventory = inventory
 
@@ -83,29 +91,55 @@ class InventoryModule(BaseInventoryPlugin):
         )
         for host in self.inventory.hosts:
             display.vvv("Rabifying host %s" % host)
-            ip = None
-            try:
-                ip = nb.ipam.ip_addresses.get(
-                    virtual_machine=host, parent=self.vm_admin_prefix
-                )
-            except Exception:
-                display.vvvv(
-                    "Rabify considers host to not be a VM %s. Keep calm." % host
-                )
-            try:
-                ips = nb.ipam.ip_addresses.filter(
-                    device=host, parent=self.device_admin_prefix
-                )
-                for addr in ips:
-                    if addr.interface.name != self.device_interface_ignore:
-                        ip = addr
-            except Exception:
-                display.vvvv(
-                    "Rabify considers host %s to not be a Device. Carry on." % host
-                )
+
+            ip = self._get_host_ip(host, nb)
 
             if ip:
                 self.inventory.set_variable(
                     host, "ansible_host", ip.address.split("/")[0]
                 )
                 display.vvv("Rabify updated IP of host %s to %s" % (host, ip))
+
+    def _get_host_ip(self, host, nb):
+        ip = None
+
+        try:
+            ip = nb.ipam.ip_addresses.get(
+                virtual_machine=host, parent=self.vm_admin_prefix
+            )
+            if self.config_context:
+                self._set_config_context(
+                    host,
+                    nb.virtualization.virtual_machines.get(
+                        ip.interface.virtual_machine.id
+                    ).config_context,
+                )
+        except Exception:
+            display.vvvv("Rabify considers host to not be a VM %s. Keep calm." % host)
+
+        try:
+            ips = nb.ipam.ip_addresses.filter(
+                device=host, parent=self.device_admin_prefix
+            )
+            for addr in ips:
+                if addr.interface.name != self.device_interface_ignore:
+                    ip = addr
+                    if self.config_context:
+                        self._set_config_context(
+                            host,
+                            nb.dcim.devices.get(ip.interface.device.id).config_context,
+                        )
+        except Exception:
+            display.vvvv(
+                "Rabify considers host %s to not be a Device. Carry on." % host
+            )
+
+        return ip
+
+    def _set_config_context(self, host, ctx):
+        for key in ctx:
+            display.vvv(
+                "Rabify is setting context key %s for host %s to value %s"
+                % (key, host, ctx[key])
+            )
+            self.inventory.set_variable(host, key, ctx[key])
