@@ -3,4 +3,5 @@
 
 - hosts:
     - all
+    - '!tags_legacy'
   gather_facts: no

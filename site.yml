@@ -10,7 +10,5 @@
 # -t apache -> run when tasks/apache.yml changes.
 #
 
-- hosts: '!tags_legacy'
-  import_playbook: playbooks/base.yml
-- hosts: '!tags_legacy'
-  import_playbook: playbooks/live-studio.yml
+- import_playbook: playbooks/base.yml
+- import_playbook: playbooks/live-studio.yml

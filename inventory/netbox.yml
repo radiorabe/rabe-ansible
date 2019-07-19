@@ -4,3 +4,4 @@ group_by:
   - tags
 query_filters:
   - role: server
+  - role: audio-recorder
