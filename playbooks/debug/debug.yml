@@ -5,6 +5,8 @@
   hosts:
     - all
     - '!tags_legacy'
+  tags:
+    - debug::debug
   gather_facts: yes
   tasks:
     - debug:

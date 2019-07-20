@@ -4,6 +4,8 @@
 - name: live-studio::configure
   hosts:
     - tags_outside_nodes
+  tags:
+    - live-studio::configure
   gather_facts: yes
   roles:
     - name: radiorabe.motion

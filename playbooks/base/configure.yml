@@ -9,6 +9,8 @@
     # See https://github.com/linux-system-roles/timesync/pull/46 for what is needed to
     # manage ntp in peering mode on affected nodes
     - '!tags_ovirt'
+  tags:
+    - base::configure::timesync
   gather_facts: yes
   roles:
     - name: linux-system-roles.timesync

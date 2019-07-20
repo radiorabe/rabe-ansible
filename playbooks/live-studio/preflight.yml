@@ -4,6 +4,8 @@
 - name: live-studio::preflight
   hosts:
     - tags_outside_nodes
+  tags:
+    - live-studio::preflight
   gather_facts: yes
   roles:
     - name: radiorabe.motion

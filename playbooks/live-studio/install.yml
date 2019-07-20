@@ -4,6 +4,8 @@
 - name: live-studio::install
   hosts:
     - tags_outside_nodes
+  tags:
+    - live-studio::install
   gather_facts: yes
   roles:
     - name: radiorabe.motion
