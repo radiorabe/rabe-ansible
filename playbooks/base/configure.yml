@@ -14,3 +14,13 @@
   gather_facts: yes
   roles:
     - name: linux-system-roles.timesync
+
+- name: base::configure::kdump
+  hosts:
+    - all
+    - '!tags_legacy'
+  tags:
+    - base::configure::kdump
+  gather_facts: yes
+  roles:
+    - name: linux-system-roles.kdump
