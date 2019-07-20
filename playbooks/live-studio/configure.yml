@@ -1,7 +1,8 @@
 ---
 # Configuration plays for live-studio laptops and devices
 
-- hosts:
+- name: live-studio::configure
+  hosts:
     - tags_outside_nodes
   gather_facts: yes
   roles:

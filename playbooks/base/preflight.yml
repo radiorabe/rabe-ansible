@@ -1,7 +1,8 @@
 ---
 # Pre-flight check plays for most devices
 
-- hosts:
+- name: base::preflight
+  hosts:
     - all
     - '!tags_legacy'
   gather_facts: no

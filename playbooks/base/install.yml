@@ -1,7 +1,8 @@
 ---
 # Install plays for most devices
 
-- hosts:
+- name: base::install
+  hosts:
     - all
     - '!tags_legacy'
   gather_facts: no

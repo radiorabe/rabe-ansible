@@ -1,7 +1,8 @@
 ---
 # Simple debug play that calls a basic debug task
 
-- hosts:
+- name: debug::debug
+  hosts:
     - all
     - '!tags_legacy'
   gather_facts: yes

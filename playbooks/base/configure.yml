@@ -1,7 +1,8 @@
 ---
 # Configuration plays for most devices
 
-- hosts:
+- name: base::configure::timesync
+  hosts:
     - all
     - '!tags_legacy'
     # don't manage timesync on ovirt nodes since the should be peering with each other
