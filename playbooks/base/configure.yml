@@ -1,7 +1,7 @@
 ---
 # Configuration plays for most devices
 
-- name: base::configure::timesync
+- name: base::configure:timesync
   hosts:
     - all
     - '!tags_legacy'
@@ -10,17 +10,17 @@
     # manage ntp in peering mode on affected nodes
     - '!tags_ovirt'
   tags:
-    - base::configure::timesync
+    - base::configure:timesync
   gather_facts: yes
   roles:
     - name: linux-system-roles.timesync
 
-- name: base::configure::kdump
+- name: base::configure:kdump
   hosts:
     - all
     - '!tags_legacy'
   tags:
-    - base::configure::kdump
+    - base::configure:kdump
   gather_facts: yes
   roles:
     - name: linux-system-roles.kdump
