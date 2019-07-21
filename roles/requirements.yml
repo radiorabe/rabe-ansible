@@ -1,4 +1,6 @@
 ---
+- src: adfinis-sygroup.hostname
+  version: master
 - src: linux-system-roles.kdump
   version: master
 - src: linux-system-roles.timesync

@@ -1,6 +1,16 @@
 ---
 # Configuration plays for most devices
 
+- name: base::configure:hostname
+  hosts:
+    - all
+    - '!tags_legacy'
+  tags:
+    - base::configuration:hostname
+  gather_facts: yes
+  roles:
+    - name: adfinis-sygroup.hostname
+
 - name: base::configure:timesync
   hosts:
     - all
