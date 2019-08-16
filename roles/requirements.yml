@@ -4,6 +4,6 @@
 - src: linux-system-roles.kdump
   version: master
 - src: linux-system-roles.timesync
-  version: master
+  version: 1.0.2
 - src: radiorabe.motion
   version: master
