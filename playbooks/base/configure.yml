@@ -34,3 +34,20 @@
   gather_facts: yes
   roles:
     - name: linux-system-roles.kdump
+
+- name: base:configure:journalbeat
+  hosts:
+    - all
+    - '!tags_legacy'
+  tags:
+    - base:configure:journalbeat
+  roles:
+    - role: local.freeipa-client-cert
+      vars:
+        freeipa_client_cert_pki_dir: "/etc/pki/journalbeat"
+        freeipa_client_cert_getcert_alias: "Journalbeat-Client-Cert"
+        freeipa_client_cert_krb_principal_name: "journalbeat/{{ ansible_fqdn }}"
+    - role: stone-payments.journalbeat
+      vars:
+        journalbeat_repo_enable: false
+        journalbeat_config_dest: "/etc/journalbeat/journalbeat.yml"

@@ -1,0 +1,12 @@
+---
+freeipa_client_cert_getcert_bin: ipa-getcert
+freeipa_client_cert_getcert_alias: "Client-Cert"
+
+freeipa_client_cert_pki_dir: /etc/pki
+
+freeipa_client_cert_cert_file: client.crt.pem
+freeipa_client_cert_key_file: client.key.pem
+
+freeipa_client_cert_eku: id-kp-clientAuth
+
+freeipa_client_cert_krb_principal_name: ~
