@@ -7,3 +7,6 @@
   version: 1.0.2
 - src: radiorabe.motion
   version: master
+- name: stone-payments.journalbeat
+  src: git+https://github.com/radiorabe/ansible-journalbeat.git
+  version: 6275c36b5fd9da73d03765345e206c09cb671cf3

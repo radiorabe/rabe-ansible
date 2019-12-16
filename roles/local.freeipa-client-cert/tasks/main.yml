@@ -1,0 +1,11 @@
+---
+- name: create pki directory
+  file:
+    path: "{{ freeipa_client_cert_pki_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: create and track certificate using getcert
+  command: "{{ freeipa_client_cert_getcert_bin }} request -I '{{ freeipa_client_cert_getcert_alias }}' -f '{{ freeipa_client_cert_pki_dir }}/{{ freeipa_client_cert_cert_file }}' -k '{{ freeipa_client_cert_pki_dir }}/{{ freeipa_client_cert_key_file }}' -U '{{ freeipa_client_cert_eku }}' -K '{{ freeipa_client_cert_krb_principal_name }}'"
+  args:
+    creates: "{{ freeipa_client_cert_pki_dir }}/{{ freeipa_client_cert_cert_file }}"
