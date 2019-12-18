@@ -1,0 +1,27 @@
+- name: cockpit::configure:clients
+  hosts:
+    - all
+    - '!tags_legacy'
+    - '!tags_cockpit'
+  tags:
+    - cockpit:configure
+  tasks:
+    - include_role:
+        name: local.cockpit-local-overrides
+
+- name: cockpit::configure:webserver
+  hosts:
+    - tags_cockpit
+  gather_facts: yes
+  tags:
+    - cockpit:configure
+  tasks:
+    - include_role:
+        name: while_true_do.srv_cockpit
+      vars:
+        wtd_srv_cockpit_web_fw_mgmt: false
+        wtd_srv_cockpit_web_package_state: "present"
+        wtd_srv_cockpit_web_dash_package_state: "present"
+      when: not ansible_check_mode
+    - include_role:
+        name: local.cockpit-local-overrides

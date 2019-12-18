@@ -1,0 +1,6 @@
+---
+# Runs preflight, install and configure plays in one go
+
+#- import_playbook: cockpit/preflight.yml
+- import_playbook: cockpit/install.yml
+- import_playbook: cockpit/configure.yml
