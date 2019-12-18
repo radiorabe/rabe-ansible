@@ -1,0 +1,16 @@
+---
+- name: Remove Cockpit Plugin from Navigation
+  template:
+    src: override.json.j2
+    dest: /usr/share/cockpit/{{ item.plugin }}/override.json
+    owner: root
+    group: root
+    mode: '0644'
+  with_items:
+    - plugin: users
+      navindex: menu
+
+- name: Remove cockpit-subscriptions Package
+  package:
+    name: cockpit-subscriptions
+    state: absent

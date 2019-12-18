@@ -1,0 +1,29 @@
+- name: cockpit::install:clients
+  hosts:
+    - all
+    - '!tags_legacy'
+    - '!tags_cockpit'
+    - '!tags_docker'
+  gather_facts: yes
+  tags:
+    - cockpit:install
+  tasks:
+    - include_role:
+        name: while_true_do.srv_cockpit
+      vars:
+        wtd_srv_cockpit_web_fw_mgmt: false
+      when: not ansible_check_mode
+
+- name: cockpit::install:docker
+  hosts:
+    - tags_docker
+  gather_facts: yes
+  tags:
+    - cockpit:install
+  tasks:
+    - include_role:
+        name: while_true_do.srv_cockpit
+      vars:
+        wtd_srv_cockpit_web_fw_mgmt: false
+        wtd_srv_cockpit_docker_package_state: "present"
+      when: not ansible_check_mode

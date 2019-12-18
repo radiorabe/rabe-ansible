@@ -35,7 +35,7 @@
   roles:
     - name: linux-system-roles.kdump
 
-- name: base:configure:journalbeat
+- name: base::configure:journalbeat
   hosts:
     - all
     - '!tags_legacy'
