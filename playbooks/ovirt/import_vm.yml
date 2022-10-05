@@ -1,0 +1,51 @@
+---
+- name: Import external OVA VM
+  hosts: localhost:server-005.admin.int.rabe.ch
+  gather_facts: no
+  vars_files:
+    - vault.yml # Contains encrypted `engine_password`
+    - vars.yml
+  tasks:
+    - block:
+      - name: Mount NFS share to /mnt/ovirt-migration
+        mount:
+          src: "{{ nfs_server }}:/ovirt-migration"
+          path: /mnt/ovirt-migration
+          state: mounted
+          fstype: nfs
+          opts: rsize=65536,wsize=65536
+      - name: List .ova files in /mnt/ovirt-migration
+        find:
+          paths: /mnt/ovirt-migration
+          patterns: '*.ova'
+        register: find
+      - set_fact:
+          files: "{{ find.files | map(attribute='path') }}" # we are only interested in file paths
+      when: inventory_hostname == import_server
+    - block:
+      - name: Login to oVirt
+        ovirt_auth:
+          url: "{{ engine_url }}"
+          password: "{{ engine_password }}"
+          username: "{{ engine_user }}"
+      - name: List VMs
+        ovirt_vm_info:
+          auth: "{{ ovirt_auth }}"
+        register: ovirt_vms
+      - set_fact:
+          vms: "{{ ovirt_vms.ovirt_vms | map(attribute='name') }}" # we are only interested in vm names
+      - name: Import VM
+        ovirt_vm:
+          auth: "{{ ovirt_auth }}"
+          cluster: "{{ import_cluster }}"
+          name: "{{ item | basename | splitext | first }}"
+          host: "{{ import_server }}"
+          kvm:
+            url: "ova://{{ item }}"
+            name: "{{ item | basename | splitext | first }}"
+            storage_domain: "{{ import_domain }}"
+        when: "item | basename | splitext | intersect(vms) | length == 0" # only start import if such a VM does not exist
+        loop: "{{ hostvars[import_server]['files'] }}"
+      when: inventory_hostname == "localhost"
+  collections:
+    - ovirt.ovirt

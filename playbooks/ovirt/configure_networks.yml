@@ -1,0 +1,89 @@
+- name: Configure networking on oVirt
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars_files:
+    - vault.yml # Contains encrypted `engine_password`
+    - vars.yml
+  tasks:
+    - name: Login
+      ovirt_auth:
+        url: "{{ engine_url }}"
+        password: "{{ engine_password | default(omit) }}"
+        username: "{{ engine_user }}"
+    - name: Create ovirtmgmt (admin) network 
+      ovirt_network:
+        auth: "{{ ovirt_auth }}"
+        data_center: Default
+        clusters:
+          - name: Default
+            assigned: yes
+            display: yes
+        name: ovirtmgmt
+        vlan_tag: 128
+        vm_network: yes
+    - name: Create storage network
+      ovirt_network:
+        auth: "{{ ovirt_auth }}"
+        data_center: Default
+        clusters:
+          - name: Default
+            assigned: yes
+            gluster: yes
+            migration: yes
+        name: storage
+        vlan_tag: 132
+        mtu: 9000
+        vm_network: yes
+    - name: Create vm networks
+      ovirt_network:
+        auth: "{{ ovirt_auth }}"
+        data_center: Default
+        clusters:
+          - name: Default
+            assigned: yes
+        name: "{{ item.0 }}"
+        vlan_tag: "{{ item.1 }}"
+        vm_network: yes
+      loop:
+        - [hq, 10]
+        - [office, 129]
+        - [audio, 130]
+        - [service, 131]
+        - [dmz, 133]
+        - [guest, 134]
+        - [vm-admin, 136]
+    - name: Enumerate hosts
+      ovirt_host_info:
+        auth: "{{ ovirt_auth }}"
+      register: ovirt_host_info
+    - set_fact:
+        hosts: "{{ ovirt_host_info.ovirt_hosts | map(attribute='address') }}"
+    - name: Attach networks to hosts
+      ovirt_host_network:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item }}"
+        interface: "bond0"
+        save: yes
+        networks:
+          - name: hq
+          - name: ovirtmgmt
+            boot_protocol: static
+            address: "{{ addr_base_ovirtmgmt}}.{{ item.split('.')[0][-1] }}"
+            netmask: "16"
+            gateway: "{{ gateway }}"
+            version: v4
+          - name: office
+          - name: audio
+          - name: service
+          - name: storage
+            boot_protocol: static
+            address: "{{ addr_base_storage }}.{{ item.split('.')[0][-1] }}"
+            netmask: "16"
+            version: v4
+          - name: dmz
+          - name: guest
+          - name: vm-admin
+      loop: "{{ hosts }}"
+  collections:
+    - ovirt.ovirt

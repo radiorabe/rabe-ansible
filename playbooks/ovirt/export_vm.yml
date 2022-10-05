@@ -1,0 +1,36 @@
+---
+- name: Export VM to OVA
+  hosts: localhost:server-001.admin.int.rabe.ch
+  gather_facts: no
+  vars_files:
+    - vault.yml # Contains encrypted `engine_password_old`
+    - vars.yml
+  tasks:
+    - name: Mount ovirt-migration to /mnt/ovirt-migration
+      mount:
+        src: "{{ nfs_server }}:/ovirt-migration"
+        path: /mnt/ovirt-migration
+        state: mounted
+        fstype: nfs
+        opts: rsize=65536,wsize=65536
+      when: inventory_hostname == export_server
+    - block:
+      - name: Login to oVirt
+        ovirt_auth:
+          url: "{{ engine_url_old }}"
+          password: "{{ engine_password_old }}"
+          username: "{{ engine_user_old }}"
+      - name: Export VM # this just exits after starting the job. TODO: find a way to wait for it to finish
+        ovirt_vm:
+          auth: "{{ ovirt_auth }}"
+          name: "{{ item }}"
+          state: "exported"
+          export_ova:
+            host: "{{ export_server.split('.')[0] }}"
+            directory:  "/mnt/ovirt-migration/"
+            filename:  "{{ item }}.ova"
+        loop:
+          - "{{ export_vm }}"
+      when: inventory_hostname == "localhost"
+  collections:
+    - ovirt.ovirt

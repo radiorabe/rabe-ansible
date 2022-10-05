@@ -1,0 +1,38 @@
+- name: Configure power management
+  hosts: localhost
+  gather_facts: no
+  connection: local
+  vars_files:
+    - vault.yml # Contains encrypted `engine_password` and `ipmi_passwords` varibale using ansible-vault
+    - vars.yml
+  tasks:
+    - name: Login
+      ovirt_auth:
+        url: "{{ engine_url }}"
+        password: "{{ engine_password }}"
+        username: "{{ engine_user }}"
+    - name: Enumerate hosts
+      ovirt_host_info:
+        auth: "{{ ovirt_auth }}"
+      register: ovirt_host_info
+    - set_fact:
+        hosts: "{{ ovirt_host_info.ovirt_hosts | map(attribute='address') }}"
+    - name: Deconfigure power management # Deconfigure to make sure the values are correct
+      ovirt_host_pm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item }}"
+        address: "{{ addr_base_ipmi}}.{{ item.split('.')[0][-1] }}"
+        type: ipmilan
+        state: absent
+      loop: "{{ hosts }}"
+    - name: Configure power management
+      ovirt_host_pm:
+        auth: "{{ ovirt_auth }}"
+        name: "{{ item }}"
+        address: "{{ addr_base_ipmi }}.{{ item.split('.')[0][-1] }}"
+        username: "{{ ipmi_user }}"
+        password: "{{ ipmi_passwords[item.split('.')[0][-1] | int] }}"
+        type: ipmilan
+      loop: "{{ hosts }}"
+  collections:
+    - ovirt.ovirt
