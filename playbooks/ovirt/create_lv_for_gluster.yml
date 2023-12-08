@@ -1,0 +1,93 @@
+---
+- name: Configure and Mount Logical Volume to be used as Gluster Volume on oVirt
+  hosts: ovirt_servers
+
+  vars_files:
+    - "{{ inventory_dir }}/{{ inventory_hostname }}_secret.yml"
+
+  tasks:
+    # this should be replace by vars, but I didn't know how to handle two sets of vars
+    - name: Set Fact gluster_volume_name
+      ansible.builtin.set_fact:
+        gluster_volume_name: tier1-gluster-volume-01
+    - name: Set Fact lv_name
+      ansible.builtin.set_fact:
+        lv_name: "lv_{{ gluster_volume_name | replace('-', '_') }}_gb_01"
+    - name: Set Fact gluster_brick_directory_owner
+      ansible.builtin.set_fact:
+        gluster_brick_directory_owner: 48
+    - name: Set Fact gluster_brick_directory_group
+      ansible.builtin.set_fact:
+        gluster_brick_directory_group: 48
+    - name: Set Fact gluster_brick_directory_permissions
+      ansible.builtin.set_fact:
+        gluster_brick_directory_permissions: "0770"
+    # Gluster expects the brick directory not be the root mount point of the brick device
+    # oVirt creates the directory /gluster_bricks on installation
+    # Brick Naming Conventions: https://docs.gluster.org/en/v3/Administrator%20Guide/Brick%20Naming%20Conventions/
+    - name: Set Fact mount_point
+      ansible.builtin.set_fact:
+        mount_point: "/gluster_bricks/{{ gluster_volume_name }}/gb_01"
+    - name: Set Facts for Data Nodes
+      ansible.builtin.set_fact:
+        vg_name: vg_tier1_gluster
+        # specify in GiB to be able to subtract the GiB reserved for the thin pool
+        lv_size_gb: 3072
+        lv_tp_metadata_gb: 16
+        # set lvm thin pool options according to oVirt best practices (see Wiki)
+        lv_opts: "--chunksize 1M --poolmetadatasize 16GiB --zero n"
+        mount_options: "rw,seclabel,noatime,attr2,inode64,logbufs=8,logbsize=128k,sunit=256,swidth=2048,noquota"
+      when: "'server-123' not in inventory_hostname"
+    - name: Set Facts for Arbiter Node
+      ansible.builtin.set_fact:
+        vg_name: vg_tier0_gluster
+        lv_size_gb: 11
+        lv_tp_metadata_gb: 1
+        lv_opts: "--chunksize 1M --poolmetadatasize 1GiB --zero n"
+        mount_options: "inode64,noatime"
+      when: "'server-123' in inventory_hostname"
+
+    - name: Create Thin Pool
+      community.general.lvol:
+        vg: "{{ vg_name }}"
+        thinpool: "{{ lv_name }}_tp"
+        size: "{{ lv_size_gb }}g"
+        opts: "{{ lv_opts }}"
+        state: present
+
+    - name: Create Logical Volume
+      community.general.lvol:
+        vg: "{{ vg_name }}"
+        thinpool: "{{ lv_name }}_tp"
+        lv: "{{ lv_name }}"
+        size: "{{ lv_size_gb - lv_tp_metadata_gb }}g"
+        state: present
+
+    - name: Format Logical Volume with XFS
+      community.general.filesystem:
+        fstype: xfs
+        force: false
+        dev: "/dev/{{ vg_name }}/{{ lv_name }}"
+        opts: "-i size=512 -d su=128k,sw=8 -n size=8192"
+
+    - name: Create Mount Point
+      ansible.builtin.file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: "0755"
+
+    - name: Mount Logical Volume
+      ansible.posix.mount:
+        src: /dev/{{ vg_name }}/{{ lv_name }}
+        path: "{{ mount_point }}"
+        fstype: xfs
+        opts: "{{ mount_options }}"
+        state: mounted
+
+    - name: Create Brick Directory
+      ansible.builtin.file:
+        path: "{{ mount_point }}/brick"
+        state: directory
+        owner: "{{ gluster_brick_directory_owner }}"
+        group: "{{ gluster_brick_directory_group }}"
+        mode: "{{ gluster_brick_directory_permissions }}"
